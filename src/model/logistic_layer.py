@@ -39,7 +39,7 @@ class LogisticLayer():
     """
 
     def __init__(self, nIn, nOut, weights=None,
-                 activation='sigmoid', isClassifierLayer=False):
+                 activation='sigmoid', isClassifierLayer=False, dropout=0):
 
         # Get activation function from string
         self.activationString = activation
@@ -49,6 +49,8 @@ class LogisticLayer():
 
         self.nIn = nIn
         self.nOut = nOut
+        # Pass the number of neurons to be dropped each time (will be randomly selected)
+        self.dropout = dropout
 
         self.inp = np.ndarray((nIn+1, 1))
         self.inp[0] = 1
@@ -124,8 +126,9 @@ class LogisticLayer():
 
         # Or even more general: doesn't care which activation function is used
         # dado: derivative of activation function w.r.t the output
+
         dado = self.activationDerivative(self.outp)
-        self.deltas = (dado * np.dot(next_derivatives, next_weights))
+        self.deltas = (dado * np.dot(next_weights, next_derivatives))
 
         # Or you can explicitly calculate the derivatives for two cases
         # Page 40 Back-propagation slides
@@ -148,7 +151,7 @@ class LogisticLayer():
         for neuron in range(0, self.nOut):
             self.weights[:, neuron] -= (learningRate *
                                         self.deltas[neuron] *
-                                        self.inp)
+                                        self.inp * (1-self.dropout/self.nOut))
         
 
     def _fire(self, inp):
